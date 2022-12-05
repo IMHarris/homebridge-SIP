@@ -28,6 +28,7 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
     // to start discovery of new accessories.
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
+      log.debug('Hello world!1');
       // run the method to discover / register your devices as accessories
       this.discoverDevices();
     });
@@ -39,7 +40,7 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
    */
   configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
-
+    // TODO Start here!!!
     // add the restored accessory to the accessories cache so we can track if it has already been registered
     this.accessories.push(accessory);
   }
@@ -54,24 +55,39 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
     // EXAMPLE ONLY
     // A real plugin you would discover accessories from the local network, cloud services
     // or a user-defined array in the platform config.
+    // TODO: This is where accessories are discovered
     const exampleDevices = [
       {
-        exampleUniqueId: 'ABCD',
-        exampleDisplayName: 'Bedroom',
+        exampleUniqueId: 'ABCDx',
+        exampleDisplayName: 'Bedroom2',
       },
       {
         exampleUniqueId: 'EFGH',
         exampleDisplayName: 'Kitchen',
       },
     ];
+    const exampleIrrigationSystems = [
+      {
+        exampleUniqueId: 'LMNO',
+        exampleDisplayName: 'Backyard',
+      }
+    ]
 
+
+    // Here is how you remove a registered accessory
+    // const uuid = this.api.hap.uuid.generate('ABCD');
+    // const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+    // this.log.debug('Foundit', existingAccessory.displayName);
+    // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
     // loop over the discovered devices and register each one if it has not already been registered
-    for (const device of exampleDevices) {
+    for (const device of exampleIrrigationSystems) {
 
       // generate a unique id for the accessory this should be generated from
       // something globally unique, but constant, for example, the device serial
       // number or MAC address
       const uuid = this.api.hap.uuid.generate(device.exampleUniqueId);
+      // this.log.debug(this.accessories.entries.toString());
+      this.log.debug('uuid', device.exampleDisplayName, device.exampleUniqueId, uuid);
 
       // see if an accessory with the same uuid has already been registered and restored from
       // the cached devices we stored in the `configureAccessory` method above

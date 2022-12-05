@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "SIPHomebridgePlugin",
   "pluginType": "platform",
   "singular": true,
   "schema": {
