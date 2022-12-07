@@ -159,7 +159,7 @@ export class SIPIrrigationSystemAccessory {
   private exampleStates = {
     Active: 0,
     ProgramMode: 0,
-    InUse: 0
+    InUse: 0,
   };
 
   constructor(
@@ -175,7 +175,8 @@ export class SIPIrrigationSystemAccessory {
 
     // get the LightBulb service if it exists, otherwise create a new LightBulb service
     // you can create multiple services for each accessory
-    this.service = this.accessory.getService(this.platform.Service.IrrigationSystem) || this.accessory.addService(this.platform.Service.IrrigationSystem);
+    this.service = this.accessory.getService(this.platform.Service.IrrigationSystem) ||
+      this.accessory.addService(this.platform.Service.IrrigationSystem);
 
     // set the service name, this is what is displayed as the default name on the Home app
     // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
@@ -191,11 +192,14 @@ export class SIPIrrigationSystemAccessory {
       .onGet(this.getActive.bind(this));               // GET - bind to the `getActive` method below
 
     // register handlers for the ProgramMode Characteristic
-    this.service.getCharacteristic(this.platform.Characteristic.Active)
+    this.service.getCharacteristic(this.platform.Characteristic.ProgramMode)
       .onSet(this.setProgramMode.bind(this))                // SET - bind to the `setProgramMode` method below
       .onGet(this.getProgramMode.bind(this));               // GET - bind to the `getProgramMode` method below
 
-
+    // register handlers for the ProgramMode Characteristic
+    this.service.getCharacteristic(this.platform.Characteristic.InUse)
+      .onSet(this.setInUse.bind(this))                // SET - bind to the `setProgramMode` method below
+      .onGet(this.getInUse.bind(this));               // GET - bind to the `getProgramMode` method below
     // // register handlers for the Brightness Characteristic
     // this.service.getCharacteristic(this.platform.Characteristic.Brightness)
     //   .onSet(this.setBrightness.bind(this));       // SET - bind to the 'setBrightness` method below
