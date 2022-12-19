@@ -143,7 +143,7 @@ export class ExamplePlatformAccessory {
 /*
 **************************************
 **************************************
-Under construction Valve Accessory
+Under construction Irrigation Accessory
 **************************************
 **************************************
  */
@@ -156,10 +156,10 @@ export class SIPIrrigationSystemAccessory {
    * These are just used to create a working example
    * You should implement your own code to track the state of your accessory
    */
-  private exampleStates = {
-    Active: 0,
+  private states = {
+    Active: 1,
     ProgramMode: 0,
-    InUse: 0,
+    InUse: 1,
   };
 
   constructor(
@@ -167,9 +167,11 @@ export class SIPIrrigationSystemAccessory {
     private readonly accessory: PlatformAccessory,
   ) {
 
-    // // set accessory information
-    // this.accessory.getService(this.platform.Service.AccessoryInformation)!
-    //   .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Default-Manufacturer')
+    // set accessory information
+    this.accessory.getService(this.platform.Service.AccessoryInformation)!
+      .setCharacteristic(this.platform.Characteristic.Active, accessory.context.device.Active)
+      .setCharacteristic(this.platform.Characteristic.InUse, accessory.context.device.InUse)
+      .setCharacteristic(this.platform.Characteristic.ProgramMode, accessory.context.device.ProgramMode);
     //   .setCharacteristic(this.platform.Characteristic.Model, 'Default-Model')
     //   .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-Serial');
 
@@ -180,9 +182,8 @@ export class SIPIrrigationSystemAccessory {
 
     // set the service name, this is what is displayed as the default name on the Home app
     // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
-    this.platform.log.debug('Hello PlatformCharacteristicName', this.platform.Characteristic.Name);
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
-
+    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.DisplayName);
+    this.platform.log.debug('Setting irrigation service name', this.platform.Characteristic.Name);
     // each service must implement at-minimum the "required characteristics" for the given service type
     // see https://developers.homebridge.io/#/service/Lightbulb
 
@@ -200,10 +201,6 @@ export class SIPIrrigationSystemAccessory {
     this.service.getCharacteristic(this.platform.Characteristic.InUse)
       .onSet(this.setInUse.bind(this))                // SET - bind to the `setProgramMode` method below
       .onGet(this.getInUse.bind(this));               // GET - bind to the `getProgramMode` method below
-    // // register handlers for the Brightness Characteristic
-    // this.service.getCharacteristic(this.platform.Characteristic.Brightness)
-    //   .onSet(this.setBrightness.bind(this));       // SET - bind to the 'setBrightness` method below
-
     /**
      * Creating multiple services of the same type.
      *
@@ -251,19 +248,19 @@ export class SIPIrrigationSystemAccessory {
    */
   async setActive(value: CharacteristicValue) {
     // implement your own code to turn your device on/off
-    this.exampleStates.Active = value as number;
+    this.states.Active = value as number;
     this.platform.log.debug('Set Characteristic Active ->', value);
   }
 
   async setProgramMode(value: CharacteristicValue) {
     // implement your own code to turn your device on/off
-    this.exampleStates.ProgramMode = value as number;
+    this.states.ProgramMode = value as number;
     this.platform.log.debug('Set Characteristic ProgramMode ->', value);
   }
 
   async setInUse(value: CharacteristicValue) {
     // implement your own code to turn your device on/off
-    this.exampleStates.InUse = value as number;
+    this.states.InUse = value as number;
     this.platform.log.debug('Set Characteristic InUse ->', value);
   }
 
@@ -282,7 +279,7 @@ export class SIPIrrigationSystemAccessory {
    */
   async getActive(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
-    const Active = this.exampleStates.Active;
+    const Active = this.states.Active;
     this.platform.log.debug('Get Characteristic Active ->', Active.toString());
 
     // if you need to return an error to show the device as "Not Responding" in the Home app:
@@ -293,7 +290,7 @@ export class SIPIrrigationSystemAccessory {
 
   async getProgramMode(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
-    const ProgramMode = this.exampleStates.ProgramMode;
+    const ProgramMode = this.states.ProgramMode;
     this.platform.log.debug('Get Characteristic ProgramMode ->', ProgramMode.toString());
 
     // if you need to return an error to show the device as "Not Responding" in the Home app:
@@ -304,7 +301,7 @@ export class SIPIrrigationSystemAccessory {
 
   async getInUse(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
-    const InUse = this.exampleStates.InUse;
+    const InUse = this.states.InUse;
     this.platform.log.debug('Get Characteristic InUse ->', InUse.toString());
 
     // if you need to return an error to show the device as "Not Responding" in the Home app:
@@ -313,7 +310,6 @@ export class SIPIrrigationSystemAccessory {
     return InUse;
   }
 }
-
 
 
 /*

@@ -1,7 +1,7 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { ExamplePlatformAccessory } from './platformAccessory';
+import { SIPIrrigationSystemAccessory } from './platformAccessory';
 
 /**
  * HomebridgePlatform
@@ -68,11 +68,27 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
     // ];
     const IrrigationSystems = [
       {
-        exampleUniqueId: 'LMNOp',
-        exampleDisplayName: 'Backyard2',
+        UniqueId: 'LMNOp',
+        DisplayName: 'Backyard2',
+        Active: 1,
+        ProgramMode: 0,
+        InUse: 1,
+        Valves: [
+          {
+            Name: 'Potss',
+            Active: 1,
+            InUse: 0,
+            ValveType: 1,
+          },
+          {
+            Name: 'Perennialss',
+            Active: 1,
+            InUse: 0,
+            ValveType: 1,
+          },
+        ],
       },
     ];
-
 
     // Here is how you remove a registered accessory
     // const uuid = this.api.hap.uuid.generate('ABCD');
@@ -87,10 +103,10 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
       // generate a unique id for the accessory this should be generated from
       // something globally unique, but constant, for example, the device serial
       // number or MAC address
-      const uuid = this.api.hap.uuid.generate(device.exampleUniqueId.concat('IrrSys'));
+      const uuid = this.api.hap.uuid.generate(device.UniqueId.concat('IrrSys'));
       discoveredUuid.push(uuid);
       // this.log.debug(this.accessories.entries.toString());
-      this.log.debug('uuid', device.exampleDisplayName, device.exampleUniqueId, uuid);
+      this.log.debug('uuid', device.DisplayName, device.UniqueId, uuid);
 
       // see if an accessory with the same uuid has already been registered and restored from
       // the cached devices we stored in the `configureAccessory` method above
@@ -106,7 +122,7 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
-        new ExamplePlatformAccessory(this, existingAccessory);
+        new SIPIrrigationSystemAccessory(this, existingAccessory);
 
         // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
         // remove platform accessories when no longer present
@@ -114,10 +130,10 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
         // this.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
       } else {
         // the accessory does not yet exist, so we need to create it
-        this.log.info('Adding new accessory:', device.exampleDisplayName);
+        this.log.info('Adding new accessory:', device.DisplayName);
 
         // create a new accessory
-        const accessory = new this.api.platformAccessory(device.exampleDisplayName, uuid);
+        const accessory = new this.api.platformAccessory(device.DisplayName, uuid);
 
         // store a copy of the device object in the `accessory.context`
         // the `context` property can be used to store any data about the accessory you may need
@@ -125,7 +141,7 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
-        new ExamplePlatformAccessory(this, accessory);
+        new SIPIrrigationSystemAccessory(this, accessory);
 
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
@@ -151,4 +167,7 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
       }
     });
   }
+  // registerDevice(accessory: PlatformAccessory) {
+  //
+  // }
 }
