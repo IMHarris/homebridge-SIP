@@ -55,23 +55,23 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
     // EXAMPLE ONLY
     // A real plugin you would discover accessories from the local network, cloud services
     // or a user-defined array in the platform config.
-    // TODO: This is where accessories are discovered
-    const exampleDevices = [
+    // TODO: This is where accessories are discovered.  For now, Lists take the place of discovered devices
+    // const exampleDevices = [
+    //   {
+    //     exampleUniqueId: 'ABCDx',
+    //     exampleDisplayName: 'Bedroom2',
+    //   },
+    //   {
+    //     exampleUniqueId: 'EFGH',
+    //     exampleDisplayName: 'Kitchen',
+    //   },
+    // ];
+    const IrrigationSystems = [
       {
-        exampleUniqueId: 'ABCDx',
-        exampleDisplayName: 'Bedroom2',
-      },
-      {
-        exampleUniqueId: 'EFGH',
-        exampleDisplayName: 'Kitchen',
+        exampleUniqueId: 'LMNOp',
+        exampleDisplayName: 'Backyard2',
       },
     ];
-    const exampleIrrigationSystems = [
-      {
-        exampleUniqueId: 'LMNO',
-        exampleDisplayName: 'Backyard',
-      }
-    ]
 
 
     // Here is how you remove a registered accessory
@@ -80,12 +80,15 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
     // this.log.debug('Foundit', existingAccessory.displayName);
     // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
     // loop over the discovered devices and register each one if it has not already been registered
-    for (const device of exampleIrrigationSystems) {
+
+    const discoveredUuid : string[] = [];
+    for (const device of IrrigationSystems) {
 
       // generate a unique id for the accessory this should be generated from
       // something globally unique, but constant, for example, the device serial
       // number or MAC address
-      const uuid = this.api.hap.uuid.generate(device.exampleUniqueId);
+      const uuid = this.api.hap.uuid.generate(device.exampleUniqueId.concat('IrrSys'));
+      discoveredUuid.push(uuid);
       // this.log.debug(this.accessories.entries.toString());
       this.log.debug('uuid', device.exampleDisplayName, device.exampleUniqueId, uuid);
 
@@ -128,5 +131,24 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }
     }
+    // Loop through loaded accessories and check them against what has been discovered
+    // If not discovered, they need to be removed.
+    const deleteUuid : string[] = [];
+    for (const accessory of this.accessories) {
+      this.log.debug('Found loaded in homebridge:', accessory.displayName);
+      // If there are accessories loaded, but not discovered, we will remove them from Homebridge
+      this.log.debug('stored accessory UUID', accessory.UUID);
+      if (discoveredUuid.find(accuuid => accuuid === accessory.UUID) === undefined) {
+        this.log.debug('Loaded accessory not discovered to be removed:', accessory.displayName);
+        deleteUuid.push(accessory.UUID);
+      }
+    }
+    deleteUuid.forEach((uuid) => {
+      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+      if (existingAccessory) {
+        this.log.debug('unregistering:', existingAccessory.displayName);
+        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
+      }
+    });
   }
 }
