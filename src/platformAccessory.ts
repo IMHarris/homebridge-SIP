@@ -30,15 +30,10 @@ export class SIPIrrigationSystemAccessory {
   ) {
 
     // set accessory information
-    // this.accessory.getService(this.platform.Service.AccessoryInformation)!
-    //   .setCharacteristic(this.platform.Characteristic.Active, accessory.context.device.Active)
-    //   .setCharacteristic(this.platform.Characteristic.InUse, accessory.context.device.InUse)
-    //   .setCharacteristic(this.platform.Characteristic.ProgramMode, accessory.context.device.ProgramMode);
     //   .setCharacteristic(this.platform.Characteristic.Model, 'Default-Model')
     //   .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-Serial');
 
-    // get the LightBulb service if it exists, otherwise create a new LightBulb service
-    // you can create multiple services for each accessory
+    // get the IrrigationSystem service if it exists, otherwise create a new IrrigationService service
     this.service = this.accessory.getService(this.platform.Service.IrrigationSystem) ||
       this.accessory.addService(this.platform.Service.IrrigationSystem);
 
@@ -93,12 +88,6 @@ export class SIPIrrigationSystemAccessory {
       // EXAMPLE - inverse the trigger
       motionDetected = !motionDetected;
 
-      // // push the new value to HomeKit
-      // motionSensorOneService.updateCharacteristic(this.platform.Characteristic.MotionDetected, motionDetected);
-      // motionSensorTwoService.updateCharacteristic(this.platform.Characteristic.MotionDetected, !motionDetected);
-      //
-      // this.platform.log.debug('Triggering motionSensorOneService:', motionDetected);
-      // this.platform.log.debug('Triggering motionSensorTwoService:', !motionDetected);
     }, 10000);
   }
 
@@ -207,14 +196,14 @@ export class SIPValveSystemAccessory {
     //   .setCharacteristic(this.platform.Characteristic.Model, 'Default-Model')
     //   .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-Serial');
 
-    // get the LightBulb service if it exists, otherwise create a new LightBulb service
+    // get the Valve service if it exists, otherwise create a new Valve service
     // you can create multiple services for each accessory
-    this.service = this.accessory.getService(this.platform.Service.IrrigationSystem) ||
-      this.accessory.addService(this.platform.Service.IrrigationSystem);
+    this.service = this.accessory.getService(this.platform.Service.Valve) ||
+      this.accessory.addService(this.platform.Service.Valve);
 
     // set the service name, this is what is displayed as the default name on the Home app
     // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.DisplayName);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.Name);
     this.platform.log.debug('Setting irrigation service name', this.platform.Characteristic.Name);
 
     // register handlers for the Active Characteristic
@@ -233,7 +222,7 @@ export class SIPValveSystemAccessory {
       .onGet(this.getInUse.bind(this));               // GET - bind to the `getInUse` method below
 
     // register handlers for the InUse Characteristic
-    this.service.getCharacteristic(this.platform.Characteristic.InUse)
+    this.service.getCharacteristic(this.platform.Characteristic.Name)
       .onSet(this.setName.bind(this))                // SET - bind to the `setName` method below
       .onGet(this.getName.bind(this));               // GET - bind to the `getName` method below
     /**
@@ -284,19 +273,19 @@ export class SIPValveSystemAccessory {
   async setActive(value: CharacteristicValue) {
     // implement your own code to turn your device on/off
     this.states.Active = value as number;
-    this.platform.log.debug('Set Characteristic Active ->', value);
+    this.platform.log.debug('Set Characteristic Active for', this.states.Name.toString(), '->', value);
   }
 
   async setValveType(value: CharacteristicValue) {
     // implement your own code to turn your device on/off
     this.states.ValveType = value as number;
-    this.platform.log.debug('Set Characteristic ValveType ->', value);
+    this.platform.log.debug('Set Characteristic ValveType for', this.states.Name.toString(), '->', value);
   }
 
   async setInUse(value: CharacteristicValue) {
     // implement your own code to turn your device on/off
     this.states.InUse = value as number;
-    this.platform.log.debug('Set Characteristic InUse ->', value);
+    this.platform.log.debug('Set Characteristic InUse for', this.states.Name.toString(), '->', value);
   }
 
   async setName(value: CharacteristicValue) {
@@ -321,7 +310,7 @@ export class SIPValveSystemAccessory {
   async getActive(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
     const Active = this.states.Active;
-    this.platform.log.debug('Get Characteristic Active ->', Active.toString());
+    this.platform.log.debug('Get Characteristic Active for', this.states.Name.toString(), '->', Active.toString());
 
     // if you need to return an error to show the device as "Not Responding" in the Home app:
     // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
@@ -332,7 +321,7 @@ export class SIPValveSystemAccessory {
   async getValveType(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
     const ValveType = this.states.ValveType;
-    this.platform.log.debug('Get Characteristic ValveType ->', ValveType.toString());
+    this.platform.log.debug('Get Characteristic ValveType for', this.states.Name.toString(), '->', ValveType.toString());
 
     // if you need to return an error to show the device as "Not Responding" in the Home app:
     // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
@@ -343,7 +332,7 @@ export class SIPValveSystemAccessory {
   async getInUse(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
     const InUse = this.states.InUse;
-    this.platform.log.debug('Get Characteristic InUse ->', InUse.toString());
+    this.platform.log.debug('Get Characteristic InUse for', this.states.Name.toString(), '->', InUse.toString());
 
     // if you need to return an error to show the device as "Not Responding" in the Home app:
     // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
@@ -354,7 +343,7 @@ export class SIPValveSystemAccessory {
   async getName(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
     const Name = this.states.Name;
-    this.platform.log.debug('Get Characteristic InUse ->', Name.toString());
+    this.platform.log.debug('Get Characteristic Name ->', Name.toString());
 
     // if you need to return an error to show the device as "Not Responding" in the Home app:
     // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
