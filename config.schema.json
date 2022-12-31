@@ -10,6 +10,14 @@
         "type": "string",
         "required": true,
         "default": "Example Dynamic Platform"
+
+      },
+      "foo": {
+        "title": "fooee",
+        "type": "string",
+        "required": true,
+        "default": "morefoo"
+
       }
     }
   }
