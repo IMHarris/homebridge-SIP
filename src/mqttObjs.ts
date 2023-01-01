@@ -106,13 +106,11 @@ export class MqttManager {
     this.platform.log.debug('Connecting..');
     this.client = mqtt.connect(this.url, this.options);
     this.client
-      .on('connect', this.connect.bind(this));
+      .on('connect', this.onConnect.bind(this))
+      .on('error', this.onError.bind(this));
   }
 
-  //server.on('connection', (stream) => {
-  //console.log('someone connected!');
-
-  async connect() {
+  async onConnect() {
     //client.on('connect', () => {
 
     this.platform.log.debug('connected (url = %s)', this.url);
@@ -129,6 +127,11 @@ export class MqttManager {
 
     client.publish(topic_prefix + '/from/connected', 'Hello from SIP', this.publish_options);
   }
+
+  async onError(error) {
+    this.platform.log.debug('MQTT Error %s', error);
+  }
+
   // Returns a reference to the EventEmitter, so that calls can be chained.
   //   By default, event listeners are invoked in the order they are added.
   //   Theemitter.prependListener() method can be used as an alternative to add the event listener to the beginning of the listeners array.

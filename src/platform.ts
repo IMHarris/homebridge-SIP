@@ -2,6 +2,7 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { SIPIrrigationSystemAccessory, SIPValveSystemAccessory } from './platformAccessory';
+import {MqttManager} from './mqttObjs';
 
 /**
  * HomebridgePlatform
@@ -18,13 +19,17 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
   // holds the uuids of all the discovered devices
   private discoveredUuid : string[] = [];
 
+  // manages connection to the SIP mqtt broker
+  mqttMgr : MqttManager;
+
   constructor(
     public readonly log: Logger,
     public readonly config: PlatformConfig,
     public readonly api: API,
   ) {
     this.log.debug('Finished initializing platform:', this.config.name);
-
+    this.mqttMgr = new MqttManager(this);
+    // this.mqttMgr.start();
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
     // Dynamic Platform plugins should only register new accessories after this event was fired,
     // in order to ensure they weren't added to homebridge already. This event can also be used
@@ -39,7 +44,7 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
 
   /**
    * This function is invoked when homebridge restores cached accessories from disk at startup.
-   * It should be used to setup event handlers for characteristics and update respective values.
+   * It should be used to set up event handlers for characteristics and update respective values.
    */
   configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
@@ -160,7 +165,6 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
         }
       }
     }
-
 
     // Loop through loaded accessories and check them against what has been discovered
     // If not discovered, they need to be removed.
