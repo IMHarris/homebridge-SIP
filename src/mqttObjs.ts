@@ -2,7 +2,7 @@
 
 import * as mqtt from 'mqtt';
 
-import {ExampleHomebridgePlatform} from './platform';
+import {SIPHomebridgePlatform} from './platform';
 import {CharacteristicValue, PlatformAccessory} from 'homebridge';
 // const Utils = require('./utils.js').Utils;
 // const fs = require('fs');
@@ -41,19 +41,21 @@ export class MqttManager {
   // const options = {};
   // // experimental
   // this.publish_options = {};
-  platform : ExampleHomebridgePlatform;
-  client! : mqtt.Client;
+  platform : SIPHomebridgePlatform;
+  client! : mqtt.MqttClient;
   options : object;
   url : string;
   topic_type : string;
   topic_prefix : string;
   publish_options : object;
+  messageQueue: Array<{topic: string, payload: string}> = [];
 
-  constructor (platform : ExampleHomebridgePlatform) {
+  constructor (platform : SIPHomebridgePlatform) {
     this.platform = platform;
     this.url = platform.config.url;
     this.topic_type = platform.config.topic_type || 'multiple';
-    this.topic_prefix = platform.config.topic_prefix || 'homebridge';
+    this.topic_prefix = 'Homebridge-SIP'
+    // this.topic_prefix = platform.config.topic_prefix || 'homebridge';
     this.options = {};
     this.options['username'] = platform.config.username || null;
     this.options['password'] = platform.config.password || null;
@@ -61,6 +63,8 @@ export class MqttManager {
     this.options['clientId'] = platform.config.client_id || 'homebridge-mqtt_' + Math.random().toString(16).substr(2, 8);
     this.platform.log.debug('clientId = %s', this.options['clientId']);
     this.publish_options = {retain: platform.config.retain || false, qos: platform.config.qos || 0};
+    platform.log.debug('connecting to MQTT Client');
+    this.start(this);
     //this.log.debug("connect options %s", JSON.stringify(this.publish_options));
     // todo: add key support
 
@@ -102,36 +106,85 @@ export class MqttManager {
   //options.reconnectPeriod = 5000;
   //options.keepalive = 60;
   //options.clean = true;
-  start() {
+  start(me : MqttManager) {
     this.platform.log.debug('Connecting..');
-    this.client = mqtt.connect(this.url, this.options);
-    this.client
-      .on('connect', this.onConnect.bind(this))
-      .on('error', this.onError.bind(this));
+    this.client = mqtt.connect(this.url, this.options)
+      .on('connect', me.onConnect.bind(this))
+      .on('disconnect', me.onDisconnect.bind(this))
+      .on('message', me.onMessage.bind(this))
+      .on('error', me.onError.bind(this));
+    // this.platform.log.debug('Connection request complete');
+    // this.client = mqtt.connect(this.url, this.options);
+  }
+
+  publish(topic : string, payload : string) {
+    this.platform.log.debug('Publish Requested');
+    if (this.client.connected) {
+      if (topic !== '') {
+        topic = '/' + topic;
+      }
+      this.client.publish(this.topic_prefix + topic, payload, this.publish_options);
+      this.platform.log.debug('payload sent. topic:', this.topic_prefix + topic, 'payload:', payload.toString());
+    } else {
+      this.platform.log.debug('Client disconnected unable to send payload:', payload.toString());
+    }
+  }
+
+  publishWhenConnected(topic: string, payload: string) {
+    this.platform.log.debug('Adding message to queue for when connected');
+    // Add message to queue
+    this.messageQueue.push({ topic, payload });
+
+    // If already connected, publish immediately
+    if (this.client && this.client.connected) {
+      this.publish(topic, payload);
+    }
   }
 
   async onConnect() {
-    //client.on('connect', () => {
+    if (this.client.connected) {
+      this.platform.log.debug('connected (url = %s)', this.url, 'as', this.options['username']);
+      // const topic = 'Homebridge-SIP/#';
+      this.client.subscribe('SIP-Homebridge/#');
 
-    this.platform.log.debug('connected (url = %s)', this.url);
-    if (this.options['username']) {
-      this.platform.log.debug('on.connect %s %s', this.options['username'], this.options['password']);
+      // Publish any queued messages
+      if (this.messageQueue.length > 0) {
+        this.platform.log.debug('Publishing queued messages');
+        for (const message of this.messageQueue) {
+          this.publish(message.topic, message.payload);
+        }
+        // Clear the queue after publishing
+        this.messageQueue = [];
+      }
     }
-    const topic = topic_prefix + '/to/#';
-    this.client.subscribe(topic);
-    this.platform.log.debug('on.connect subscribe %s', topic);
+
+    // if (this.options['username']) {
+    //   this.platform.log.debug('on.connect %s %s', this.options['username'], this.options['password']);
+
+    // const topic = 'Homebridge-SIP/#';
+    // this.client.subscribe(topic);
+    // this.platform.log.debug('on.connect subscribe %s', topic);
 
     // const plugin_version = Utils.readPluginVersion();
     // const msg = plugin_name + ' v' + plugin_version + ' started';
     // this.platform.log.debug('on.connect %s', msg);
 
-    client.publish(topic_prefix + '/from/connected', 'Hello from SIP', this.publish_options);
+    // client.publish(topic_prefix + '/from/connected', 'Hello from SIP', this.publish_options);
+  }
+
+  async onDisconnect() {
+    this.platform.log.debug('Disconnecting:', client.error, ':', client.statusMessage);
   }
 
   async onError(error) {
     this.platform.log.debug('MQTT Error %s', error);
   }
 
+  async onMessage(topic, buffer) {
+    //this.platform.log.debug('Message Receivedx!', buffer.toString());
+    this.platform.log.debug('MQTT message received from SIP');
+    await this.platform.mqttIntakeMsg(buffer.toString(), topic);
+  }
   // Returns a reference to the EventEmitter, so that calls can be chained.
   //   By default, event listeners are invoked in the order they are added.
   //   Theemitter.prependListener() method can be used as an alternative to add the event listener to the beginning of the listeners array.
